@@ -1,0 +1,11 @@
+<RCC>
+    <qresource prefix="/">
+        <file>Resources/帮助.png</file>
+        <file>Resources/打开.bmp</file>
+        <file>Resources/放大.png</file>
+        <file>Resources/关闭.png</file>
+        <file>Resources/设置.png</file>
+        <file>Resources/缩小.png</file>
+        <file>Resources/新建.png</file>
+    </qresource>
+</RCC>
