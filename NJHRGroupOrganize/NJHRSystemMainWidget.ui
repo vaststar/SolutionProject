@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>NJHRSystemMainWidget</string>
+   <string>编组管理窗口</string>
   </property>
   <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="1,4">
    <property name="spacing">
