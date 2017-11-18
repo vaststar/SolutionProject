@@ -96,11 +96,12 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;QT_CORE_LIB;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>$(QTDIR)\include\QtCore;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>ws2_32.lib;LogLogd.lib;DataBaseOperated.lib;Qt5Widgetsd.lib;Qt5Cored.lib;WinBaseServerd.lib;NJHRShootDataAccessd.lib;NJHRDataManagerd.lib;NJHRGroupOrganized.lib;FacilityUtild.lib;PluginCored.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>ws2_32.lib;LogLogd.lib;DataBaseOperated.lib;Qt5Widgetsd.lib;Qt5Cored.lib;WinBaseServerd.lib;NJHRShootDataAccessd.lib;NJHRDataManagerd.lib;NJHRGroupOrganized.lib;FacilityUtild.lib;PluginCored.lib;GeneralUId.lib;DataStructTyped.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">

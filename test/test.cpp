@@ -78,6 +78,78 @@ void testPlugin()
 	PluginManager::Instance()->startManager();
 }
 
+#include <QtCore/QAbstractTableModel>
+#include <GeneralUI/DataTableModel.h>
+#include <DataStructType/BaseItemData.h>
+#include <QtWidgets/QTableView>
+void testTable()
+{
+	DataTableModel *tableModel = new DataTableModel();
+	std::vector<BaseItemDataPtr> dataVec;
+	BaseItemDataPtr data = std::make_shared<BaseItemData>();
+	data->SetName(QStringLiteral("²à²à").toStdString());
+	dataVec.push_back(data);
+	BaseItemDataPtr data1 = std::make_shared<BaseItemData>();
+	data1->SetName(QStringLiteral("²à²à1").toStdString());
+	dataVec.push_back(data1);
+	BaseItemDataPtr data2 = std::make_shared<BaseItemData>();
+	data2->SetName(QStringLiteral("²à²à2").toStdString());
+	dataVec.push_back(data2);
+	BaseItemDataPtr data3 = std::make_shared<BaseItemData>();
+	data3->SetName(QStringLiteral("²à²à3").toStdString());
+	dataVec.push_back(data3);
+	tableModel->InitModelData(dataVec);
+	QTableView *vi = new QTableView(0);
+	vi->setModel(tableModel);
+	vi->setDragEnabled(true);
+	vi->setAcceptDrops(true);
+	vi->setDragDropMode(QAbstractItemView::DragDrop);
+	vi->show();
+
+}
+
+#include <GeneralUI/DataTreeItemModel.h>
+#include <QtWidgets/QTreeView>
+#include <DataStructType/BaseTreeItem.h>
+Q_DECLARE_METATYPE(BaseItemDataPtr)
+void testTree()
+{
+	DataTreeItemModel *treeModel = new DataTreeItemModel(0);
+	QTreeView *treeView = new QTreeView();
+	
+	BaseTreeItem *root = new BaseTreeItem();
+
+	BaseItemDataPtr data = std::make_shared<BaseItemData>();
+	data->SetName(QStringLiteral("²à²à").toStdString());
+	BaseTreeItem *item = new BaseTreeItem(QVariant::fromValue(data), root);
+	root->appendChild(item);
+
+	BaseItemDataPtr data1 = std::make_shared<BaseItemData>();
+	data1->SetName(QStringLiteral("²à²à1").toStdString());
+	BaseTreeItem *item1 = new BaseTreeItem(QVariant::fromValue(data1), item);
+	item->appendChild(item1);
+	
+	BaseItemDataPtr data2 = std::make_shared<BaseItemData>();
+	data2->SetName(QStringLiteral("²à²à2").toStdString());
+	BaseTreeItem *item2 = new BaseTreeItem(QVariant::fromValue(data2), item);
+	item->appendChild(item2);
+
+	BaseItemDataPtr data3 = std::make_shared<BaseItemData>();
+	data3->SetName(QStringLiteral("²à²à3").toStdString());
+	BaseTreeItem *item3 = new BaseTreeItem(QVariant::fromValue(data3), item1);
+	item1->appendChild(item3);
+
+	treeModel->InitModelData(root);
+	treeView->setModel(treeModel);
+
+	treeView->setDragEnabled(true);
+	treeView->setAcceptDrops(true);
+	treeView->setDragDropMode(QAbstractItemView::DragDrop);
+	treeView->show();
+	
+}
+
+
 #include <QtCore/QTextCodec>
 
 int main(int argc, char *argv[])
@@ -89,9 +161,11 @@ int main(int argc, char *argv[])
 	//testTCP();
 	//testDataAccess();
 	//testDataManager();
-	testWidget();
+	//testWidget();
 	//testUtil();
 	//testPlugin();
+	//testTable();
+	testTree();
     return a.exec();
 }
 

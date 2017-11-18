@@ -17,13 +17,12 @@ class DataTreeItemModel::DataTreeItemModelPrivate
 public:
 	DataTreeItemModelPrivate()
 		:rootItem(new BaseTreeItem(QVariant(), nullptr))
-		, dragedIndex(QModelIndex())
 	{
 
 	}
 public:
 	BaseTreeItem *rootItem;
-	QModelIndex dragedIndex;//被拖动的index
+	QModelIndexList dragedIndexList;//被拖动的index
 };
 
 DataTreeItemModel::DataTreeItemModel(QObject *parent)
@@ -164,14 +163,12 @@ QMimeData * DataTreeItemModel::mimeData(const QModelIndexList &indexes) const
 	QByteArray encodedData;
 	QDataStream stream(&encodedData, QIODevice::WriteOnly);
 
+	_p->dragedIndexList = indexes;
 	foreach(const QModelIndex &index, indexes)
 	{
 		if (!index.isValid()) continue;
 
-		BaseTreeItem * indexItem = static_cast<BaseTreeItem*>(index.internalPointer());
-		stream << reinterpret_cast<qint64>(indexItem);
-		_p->dragedIndex = index;
-		break;
+		stream << reinterpret_cast<qint64>(&index);
 	}
 	mimeData->setData(BATTLETREEDATATYPE, encodedData);
 	return mimeData;
@@ -184,21 +181,34 @@ bool DataTreeItemModel::dropMimeData(const QMimeData *data, Qt::DropAction actio
 
 	QByteArray encodedData = data->data(BATTLETREEDATATYPE);
 	QDataStream stream(&encodedData, QIODevice::ReadOnly);
-	qint64 dropedItemData = 0;
-	stream >> dropedItemData;
-	BaseTreeItem *dropItem = (BaseTreeItem*)dropedItemData;
 
-	beginRemoveRows(_p->dragedIndex.parent(), static_cast<BaseTreeItem*>(_p->dragedIndex.internalPointer())->RowInParent(),
-		static_cast<BaseTreeItem*>(_p->dragedIndex.internalPointer())->RowInParent() + 1);
-	dropItem->GetParent()->removeChild(dropItem);
-	endRemoveRows();
+	std::vector<BaseTreeItem*> dropedItemData;
+	while (!stream.atEnd())
+	{
+		qint64 indexData;
+		stream >> indexData;
+		dropedItemData.push_back(static_cast<BaseTreeItem*>((*(reinterpret_cast<QModelIndex*>(indexData))).internalPointer()));
+	}
 
+	for (auto it = _p->dragedIndexList.begin(); it != _p->dragedIndexList.end();++it)
+	{
+		//只删除第一个
+		beginRemoveRows((*it).parent(), (*it).row(),(*it).row() + 1);
+		dropedItemData.front()->GetParent()->removeChild(dropedItemData.front());
+		endRemoveRows();
+		break;
+	}
+	
 	BaseTreeItem *parentItem = parent.isValid() ? static_cast<BaseTreeItem*>(parent.internalPointer()) : _p->rootItem;
-	beginInsertRows(parent, parentItem->childCount(), parentItem->childCount() + 1);
-	dropItem->SetParent(static_cast<BaseTreeItem*>(parent.internalPointer()));
-	parentItem->appendChild(dropItem);
-	endInsertRows();
-
+	for (auto it = dropedItemData.begin(); it != dropedItemData.end();++it)
+	{
+		beginInsertRows(parent, parentItem->childCount(), parentItem->childCount() + 1);
+		(*it)->SetParent(static_cast<BaseTreeItem*>(parent.internalPointer()));
+		parentItem->appendChild((*it));
+		endInsertRows();
+		break;
+	}
+	
 	return true;
 }
 
@@ -208,7 +218,10 @@ bool DataTreeItemModel::removeRows(int row, int count, const QModelIndex & paren
 	beginRemoveRows(parent, row, row + count);
 
 	BaseTreeItem *parentItem = parent.isValid() ? static_cast<BaseTreeItem*>(parent.internalPointer()) : _p->rootItem;
-	parentItem->removeChild(static_cast<BaseTreeItem*>(index(row, 0, parent).internalPointer()));
+	for (int i = 0; i < count; ++i)
+	{
+		parentItem->removeChild(static_cast<BaseTreeItem*>(index(row + i, 0, parent).internalPointer()));
+	}
 
 	endRemoveRows();
 	return true;
@@ -218,14 +231,17 @@ bool DataTreeItemModel::insertRows(int row, int count, const QModelIndex & paren
 {
 	BaseTreeItem *parentItem = parent.isValid() ? static_cast<BaseTreeItem*>(parent.internalPointer()) : _p->rootItem;
 
-	beginInsertRows(parent, parentItem->childCount(), parentItem->childCount() + 1);
+	beginInsertRows(parent, parentItem->childCount(), parentItem->childCount() + count);
 
-	BaseItemDataPtr tempData = std::make_shared<BaseItemData>();
-	tempData->SetName(QStringLiteral("默认名称").toStdString());
-	tempData->SetUUID(QUuid::createUuid().toString().toStdString());
+	for (int i = 0; i < count;++i)
+	{
+		BaseItemDataPtr tempData = std::make_shared<BaseItemData>();
+		tempData->SetName(QStringLiteral("默认名称").toStdString());
+		tempData->SetUUID(QUuid::createUuid().toString().toStdString());
 
-	BaseTreeItem* childItem = new BaseTreeItem(QVariant::fromValue<BaseItemDataPtr>(tempData), parentItem);
-	parentItem->appendChild(childItem);
+		BaseTreeItem* childItem = new BaseTreeItem(QVariant::fromValue<BaseItemDataPtr>(tempData), parentItem);
+		parentItem->appendChild(childItem);
+	}
 
 	endInsertRows();
 	return true;
