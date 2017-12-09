@@ -149,7 +149,11 @@ void testTree()
 	
 }
 
-
+#include "eventTestClass.h"
+void testEvent()
+{
+	eventTestClass a;
+}
 #include <QtCore/QTextCodec>
 
 int main(int argc, char *argv[])
@@ -165,7 +169,9 @@ int main(int argc, char *argv[])
 	//testUtil();
 	//testPlugin();
 	//testTable();
-	testTree();
+	//testTree();
+	//FacilityUtil::CopyFileToTarget("E:\\qq","E:\\ww");
+	testEvent();
     return a.exec();
 }
 

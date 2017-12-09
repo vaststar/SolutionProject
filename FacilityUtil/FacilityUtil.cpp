@@ -4,6 +4,8 @@
 #include <io.h>
 #include <direct.h>
 #include <time.h>
+#include <algorithm>
+#include <fstream>
 
 #include <Windows.h>
 #include <TlHelp32.h>
@@ -49,17 +51,27 @@ const std::string FacilityUtil::GenerateUUID()
 	return buf;
 }
 
-bool FacilityUtil::CreateDirPath(const std::string &path, const std::string &splitCh) 
+bool FacilityUtil::CreateDirPath(const std::string &path, const std::string &splitCh, bool isDir)
 {
-	if (path.size() < 4 || path[1] != ':') return false;
+	if (path.size() < 4 || splitCh.empty() ||
+		path[1] != ':' || path[2] != splitCh.front()) return false;
 
-	std::string::size_type splitPos = path.find_last_of(splitCh);
-	while ((splitPos = path.find(splitCh,splitPos +1)) != std::string::npos)
+	std::string usedPath = path;
+	if (isDir)
 	{
-		std::string subPath = path.substr(0, splitPos);
+		if (path.back() != splitCh.front())
+		{
+			usedPath.append(splitCh);
+		}
+	}
+
+	std::string::size_type splitPos = usedPath.find_first_of(splitCh);
+	while ((splitPos = usedPath.find(splitCh,splitPos +1)) != std::string::npos)
+	{
+		std::string subPath = usedPath.substr(0, splitPos);
 		if (0 != ::_access(subPath.c_str(),0))
 		{
-			if (0 != ::_mkdir(path.c_str()))
+			if (0 != ::_mkdir(subPath.c_str()))
 			{
 				return false;
 			}
@@ -123,6 +135,45 @@ bool FacilityUtil::GetProcessIDByName(const std::string &processName, unsigned l
 	return false;
 }
 
+
+bool FacilityUtil::GetAllPath(const std::string &sourcePath, std::vector<std::string> &dirResult, 
+							  std::vector<std::string> &fileResult, bool isDir)
+{
+	if (sourcePath.size() < 2 || sourcePath[1] != ':') return false;
+	long hFile = 0;
+	_finddata32_t fileInfo;
+
+	std::string usedPath = sourcePath;
+	if (isDir)
+	{
+		if (sourcePath.back() == '\\' || sourcePath.back() == '/')
+		{
+			usedPath.pop_back();
+		}
+		if ((hFile = _findfirst32(std::string().append(usedPath).append("\\*").c_str(), &fileInfo)) == -1) return false;
+	} 
+	else
+	{
+		fileResult.push_back(sourcePath);
+		return true;
+	}
+	do 
+	{
+		if (fileInfo.attrib & _A_SUBDIR)
+		{
+			if (strcmp(fileInfo.name, ".") == 0 || strcmp(fileInfo.name, "..") == 0) continue;
+			
+			dirResult.push_back(std::string().append(usedPath).append("\\").append(fileInfo.name));
+			GetAllPath(std::string().append(usedPath).append("\\").append(fileInfo.name), dirResult,fileResult,true);
+		} 
+		else
+		{
+			fileResult.push_back(std::string().append(usedPath).append("\\").append(fileInfo.name));
+		}
+	} while (_findnext32(hFile,&fileInfo) == 0);
+	_findclose(hFile);
+	return true;
+}
 
 ///////////////////////////////////////////////////////////////////////////
 ///<summary> 将json文档，解析成map（key=string,value=string）(无法解析kObjectType)(数组去除首尾空白后通过下划线连接) .</summary>/////////////////////////////////////////////
@@ -228,4 +279,39 @@ bool FacilityUtil::ParseJsonFile(const std::string &filePath, std::map<std::stri
 		return ParseJsonDoc(document, Results);
 	}
 	return false;
+}
+
+bool FacilityUtil::CopyFileToTarget(const std::string &sourcePath, const std::string &dirPath, 
+									bool replace/*=true*/, const std::string &fileType/*=""*/)
+{
+	if (sourcePath.size() < 2 || dirPath.size() < 2 ||sourcePath[1] != ':' || dirPath[1] != ':') return false;
+	std::vector<std::string> dir, file;
+	GetAllPath(sourcePath, dir, file);
+
+	//创建文件夹
+	std::for_each(dir.begin(), dir.end(), [sourcePath,dirPath](const std::string &data) {
+		std::string path = dirPath;
+		path.append(data.substr(sourcePath.length(), data.size()));
+		CreateDirPath(path, std::string() + sourcePath[2], true);
+	});
+
+	//复制文件
+	std::for_each(file.begin(), file.end(), [sourcePath,dirPath,replace](const std::string &data) {
+		std::string outPath = dirPath + data.substr(sourcePath.length(), data.size());
+
+		if (!replace && ::_access(outPath.c_str(), 0) == 0) return;
+
+		std::ifstream in;
+		in.open(data.c_str(),std::ios_base::in | std::ios_base::binary);
+		if (!in.is_open()) return;
+
+		std::ofstream out;
+		out.open(outPath.c_str(),std::ios_base::out | std::ios_base::binary);
+		if (!out.is_open()) return;
+		
+		out << in.rdbuf();
+		in.close();
+		out.close();
+	});
+	return true;
 }

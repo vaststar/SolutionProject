@@ -56,6 +56,8 @@ QVariant DataTreeItemModel::data(const QModelIndex &index, int role) const
 			return QVariant::fromValue<BaseItemDataPtr>(soldier);
 		}
 		break;
+	case Qt::CheckStateRole:
+		return static_cast<BaseTreeItem*>(index.internalPointer())->GetCheckState();
 	default:
 		break;
 	}
@@ -69,6 +71,12 @@ bool DataTreeItemModel::setData(const QModelIndex &index, const QVariant &value,
 	{
 	case Qt::EditRole:
 		static_cast<BaseTreeItem*>(index.internalPointer())->data().value<BaseItemDataPtr>()->SetName(value.value<QString>().toStdString());
+		emit dataChanged(index, index);
+		break;
+	case Qt::CheckStateRole:
+		static_cast<BaseTreeItem*>(index.internalPointer())->SetCheckState(value.value<Qt::CheckState>(), true, true);
+		emit dataChanged(QModelIndex(), index);
+		break;
 	default:
 		break;
 	}
@@ -79,7 +87,9 @@ Qt::ItemFlags DataTreeItemModel::flags(const QModelIndex &index) const
 {
 	if (index.isValid())
 	{
-		return Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled;
+		return Qt::ItemIsEnabled | Qt::ItemIsSelectable | 
+			   Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled |
+			   Qt::ItemIsUserCheckable;
 	}
 	return Qt::NoItemFlags;
 }

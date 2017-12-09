@@ -34,7 +34,7 @@ public:
 	///
 	///<remarks> 朱正天,2017/11/9. </remarks>
 	///////////////////////////////////////////////////////////////////////////*/
-	static bool CreateDirPath(const std::string &path, const std::string &splitCh = "\\");
+	static bool CreateDirPath(const std::string &path, const std::string &splitCh = "\\",bool isDir = false);
 
 	//////////////////////////////////////////////////////////////////////////
 	///<summary>替换全部的字符串 </summary>
@@ -60,6 +60,14 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	static bool ParseJsonString(const std::string &jsonString, std::map<std::string, std::vector<std::string>> &Results);
 	static bool ParseJsonFile(const std::string &filePath,std::map<std::string, std::vector<std::string>> &Results);
+
+	/////////////////////////////////////////////////////////////////////////
+	///<summary>将源目录拷贝到目标目录</summary>/////////////////////////////////
+	///<params>源路径，目标路径，是否覆盖，拷贝文件类型 </params>///////////////////////////////////////
+	///<return>成功返回true，否则返回false </return>///////////////////////////////////////
+	///<remarks>朱正天,2017.11.29。</remarks>//////////////////
+	//////////////////////////////////////////////////////////////////////////
+	static bool CopyFileToTarget(const std::string &sourcePath,const std::string &dirPath,bool replace=true,const std::string &fileType="");
 private:
 	//////////////////////////////////////////////////////////////////////////
 	///<summary>根据进程名称，获取进程id </summary>
@@ -68,6 +76,15 @@ private:
 	///<remarks> 11/8/2017 --朱正天  </remarks>/////////////////////////////
 	///////////////////////////////////////////////////////////////////////////
 	static bool GetProcessIDByName(const std::string &processName, unsigned long &Results);
+
+	/////////////////////////////////////////////////////////////////////////
+	///<summary>根据路径名，分解子目录，子文件</summary>/////////////////////////////////
+	///<params>路径，子目录，子文件，是否是目录 </params>///////////////////////////////////////
+	///<return>成功返回true </return>///////////////////////////////////////
+	///<remarks>朱正天,2017.11.29。</remarks>//////////////////
+	//////////////////////////////////////////////////////////////////////////
+	static bool GetAllPath(const std::string &sourcePath, std::vector<std::string> &dirResult,
+						   std::vector<std::string> &fileResult,bool isDir=true);
 private:
 	explicit FacilityUtil();
 	FacilityUtil(const FacilityUtil &);

@@ -69,6 +69,13 @@ public:
 	///<remarks> 朱正天,2017/1/9.</remarks>
 	///////////////////////////////////////////////////////////////////////////
 	bool removeChild(BaseTreeItem *childItem);
+public:
+	///<summary> 勾选属性 --朱正天,2017.12.9</summary>///
+	void SetCheckState(Qt::CheckState checkState, bool childEffect, bool parentEffect);
+	Qt::CheckState GetCheckState()const;
+private:
+	void updateChildCheckState(Qt::CheckState checkState);
+	void updateParentCheckState(Qt::CheckState checkState);
 private:
 	class BaseTreeItemPrivate;
 	BaseTreeItemPrivate *_p;

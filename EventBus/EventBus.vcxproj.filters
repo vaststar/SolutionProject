@@ -15,33 +15,18 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="ReadMe.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="stdafx.h">
+    <ClInclude Include="EventBus.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="targetver.h">
+    <ClInclude Include="EventBus_global.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="MyObserver.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="eventTestClass.h">
+    <ClInclude Include="EventBusType.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="stdafx.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="test.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="MyObserver.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="eventTestClass.cpp">
+    <ClCompile Include="EventBus.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
